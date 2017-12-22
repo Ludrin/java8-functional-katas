@@ -13,7 +13,11 @@ import java.util.List;
 public class Kata6 {
     public static String execute() {
         List<Movie> movies = DataUtil.getMovies();
-
-        return "someUrl";
+        		
+        return movies.stream()
+		.map(m -> m.getBoxarts())
+		.flatMap(c -> c.stream())
+		.reduce((ba1, ba2) -> (ba1.getHeight() * ba1.getWidth()) > (ba2.getHeight() * ba2.getWidth()) ? ba1:ba2)
+		.get().getUrl();
     }
 }

@@ -2,10 +2,13 @@ package katas;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+
+import model.BoxArt;
 import util.DataUtil;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /*
     Goal: Create a datastructure from the given data:
@@ -57,14 +60,37 @@ import java.util.Map;
     Output: the given datastructure
 */
 public class Kata11 {
+	private static final String KEY_VIDEO_ID = "videoId";
+	private static final String KEY_TITLE = "title";
+	private static final String KEY_ID = "id";
+	private static final String KEY_NAME = "name";
+	
     public static List<Map> execute() {
         List<Map> lists = DataUtil.getLists();
         List<Map> videos = DataUtil.getVideos();
         List<Map> boxArts = DataUtil.getBoxArts();
         List<Map> bookmarkList = DataUtil.getBookmarkList();
-
-        return ImmutableList.of(ImmutableMap.of("name", "someName", "videos", ImmutableList.of(
-                ImmutableMap.of("id", 5, "title", "The Chamber", "time", 123, "boxart", "someUrl")
-        )));
+        
+        return lists.stream().map(
+        		l -> ImmutableMap.of(
+        				KEY_NAME, l.get(KEY_NAME), 
+        				"videos", videos.stream()
+    									.filter(v -> l.get(KEY_ID).equals(v.get("listId")) )
+    									.map(vf -> ImmutableMap.of(
+    											KEY_ID, vf.get(KEY_ID), 
+    											KEY_TITLE, vf.get(KEY_TITLE), 
+    											"time", bookmarkList.stream()
+    																.filter(bm -> vf.get(KEY_ID).equals(bm.get(KEY_VIDEO_ID)))
+    																.findFirst()
+    																.map(bmf -> bmf.get("time")).orElse("noBookmark"),
+    											"boxart", boxArts.stream()
+				    											.filter(ba -> vf.get(KEY_ID).equals(ba.get(KEY_VIDEO_ID)))
+				    											.reduce( (a,b) -> (int) a.get("height") * (int) a.get("width") < (int) b.get("height") * (int) b.get("width") ? a : b)
+																.get().get("url")
+        						))//end sub map
+        				.collect(Collectors.toList())
+        				)//end main List
+        		)//end main map
+        		.collect(Collectors.toList());
     }
 }
